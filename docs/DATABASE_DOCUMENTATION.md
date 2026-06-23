@@ -286,8 +286,15 @@ SELECT * FROM notifications;
 
 ## 7. Langkah Membuat Screenshot Tabel (untuk UAS)
 
+> **Pintasan:** seluruh DDL + seed + query verifikasi sudah digabung dalam satu file
+> siap-jalan: **[`docs/schema.sql`](schema.sql)**. Tidak perlu copy-paste manual.
+
 1. Buka **phpMyAdmin** (XAMPP/Laragon) atau **MySQL Workbench**.
-2. Jalankan DDL pada Bagian 3 → lalu seed data Bagian 5.
+2. Jalankan `docs/schema.sql` — salah satu cara:
+   - phpMyAdmin: tab **Import** → pilih `schema.sql` → **Go**
+   - MySQL Workbench: **File ▸ Open SQL Script** → `schema.sql` → klik **Run** (⚡)
+   - CLI: `mysql -u root -p < docs/schema.sql`
+   - (atau jalankan manual DDL Bagian 3 lalu seed Bagian 5)
 3. Buka tiap tabel (`users`, `tickets`, `comments`, `ticket_activities`, `notifications`).
 4. Screenshot tampilan **Structure** (struktur kolom) dan **Browse** (isi data) tiap tabel.
 5. Simpan screenshot ke folder lampiran dokumentasi UAS.

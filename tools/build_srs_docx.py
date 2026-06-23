@@ -324,8 +324,16 @@ figure(os.path.join(IMG, "lifecycle.png"), "Gambar 4. State diagram status tiket
 doc.add_heading("6.2. Entity Relationship Diagram (ERD)", level=2)
 figure(os.path.join(IMG, "erd.png"), "Gambar 5. ERD basis data (backend-ready)")
 para("DDL CREATE TABLE, penjelasan kolom, dan seed data lengkap tersedia pada "
-     "docs/DATABASE_DOCUMENTATION.md.", size=10, italic=True, color=GRAY)
-placeholder("Screenshot: tabel database (Structure & Browse) dari phpMyAdmin / MySQL Workbench")
+     "docs/DATABASE_DOCUMENTATION.md, serta file siap-jalan docs/schema.sql.", size=10, italic=True, color=GRAY)
+
+doc.add_heading("6.3. Tabel Database (Seed Data)", level=2)
+para("Isi tiap tabel basis data sesuai seed pada docs/schema.sql (identik dengan data dummy "
+     "aplikasi). Dihasilkan langsung dari skema; setara tampilan Browse phpMyAdmin / MySQL Workbench.")
+figure(os.path.join(IMG, "db_users.png"), "Gambar 6. Tabel users", width=5.6)
+figure(os.path.join(IMG, "db_tickets.png"), "Gambar 7. Tabel tickets", width=6.4)
+figure(os.path.join(IMG, "db_comments.png"), "Gambar 8. Tabel comments", width=6.0)
+figure(os.path.join(IMG, "db_activities.png"), "Gambar 9. Tabel ticket_activities", width=5.8)
+figure(os.path.join(IMG, "db_notifications.png"), "Gambar 10. Tabel notifications", width=6.0)
 
 # ============================================================ 7. API
 doc.add_heading("7. Antarmuka API (Backend-ready)", level=1)

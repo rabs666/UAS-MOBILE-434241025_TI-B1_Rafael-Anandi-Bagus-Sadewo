@@ -74,7 +74,7 @@ app/src/main/java/com/example/e_ticketinghelpdeskuts/
 APK rilis siap-pakai juga tersedia di repo:
 
 ```
-dist/ETicketingHelpdeskUTS-v1.0-release.apk
+apk file eticketing.apk
 ```
 
 > Signing menggunakan `keys.jks` via `keystore.properties`. Build release mengaktifkan

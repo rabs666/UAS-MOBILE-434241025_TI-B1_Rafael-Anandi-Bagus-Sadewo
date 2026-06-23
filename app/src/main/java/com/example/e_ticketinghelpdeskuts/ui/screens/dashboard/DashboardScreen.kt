@@ -70,7 +70,7 @@ fun DashboardScreen(navController: NavController, viewModel: TicketViewModel) {
             )
         },
         floatingActionButton = {
-            if (currentUser?.role == UserRole.USER) {
+            if (currentUser != null) {
                 FloatingActionButton(
                     onClick = { navController.navigate(Screen.CreateTicket.route) },
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -196,16 +196,14 @@ fun DashboardScreen(navController: NavController, viewModel: TicketViewModel) {
                 navController.navigate(Screen.TicketList.route)
             }
             
-            if (currentUser?.role == UserRole.USER) {
-                Spacer(modifier = Modifier.height(12.dp))
-                ActionMenuItem(
-                    title = "Buat Tiket Baru",
-                    subtitle = "Laporkan kendala IT yang Anda hadapi",
-                    icon = Icons.Default.AddCircle,
-                    iconColor = MaterialTheme.colorScheme.secondary
-                ) {
-                    navController.navigate(Screen.CreateTicket.route)
-                }
+            Spacer(modifier = Modifier.height(12.dp))
+            ActionMenuItem(
+                title = "Buat Tiket Baru",
+                subtitle = "Laporkan kendala IT yang Anda hadapi",
+                icon = Icons.Default.AddCircle,
+                iconColor = MaterialTheme.colorScheme.secondary
+            ) {
+                navController.navigate(Screen.CreateTicket.route)
             }
 
             Spacer(modifier = Modifier.height(12.dp))

@@ -53,7 +53,7 @@ flowchart TD
 | `dashboard` | Dashboard | Semua role (login) |
 | `ticket_list` | Daftar Tiket | Semua role (login) |
 | `ticket_detail/{ticketId}` | Detail Tiket | Semua role (login) |
-| `create_ticket` | Buat Tiket | USER |
+| `create_ticket` | Buat Tiket | Semua role (login) |
 | `profile` | Profil | Semua role (login) |
 | `notifications` | Notifikasi | Semua role (login) |
 
@@ -135,10 +135,12 @@ flowchart LR
         H2[Ubah status]
         H3[Assign tiket]
         H4[Komentar]
+        H5[Buat tiket baru]
     end
     subgraph ADMIN[⚙️ ADMIN]
         A1[Semua akses Helpdesk]
         A2[Kelola assignment]
+        A3[Buat tiket baru]
     end
 ```
 
@@ -146,13 +148,12 @@ flowchart LR
 |------|:----:|:--------:|:-----:|
 | Lihat tiket sendiri | ✅ | ✅ | ✅ |
 | Lihat **semua** tiket | ❌ | ✅ | ✅ |
-| Buat tiket | ✅ | ❌ | ❌ |
+| Buat tiket | ✅ | ✅ | ✅ |
 | Ubah status | ❌ | ✅ | ✅ |
 | Assign petugas | ❌ | ✅ | ✅ |
 | Tambah komentar | ✅ | ✅ | ✅ |
 
-Aturan ini ditegakkan di `TicketViewModel` (mis. `createTicket` menolak non-USER,
-`updateStatus`/`assignTicket` menolak USER) dan pada filter `tickets` yang membatasi
+Aturan ini ditegakkan di `TicketViewModel` (mis. `updateStatus`/`assignTicket` menolak USER) dan pada filter `tickets` yang membatasi
 daftar sesuai role.
 
 ---
@@ -194,7 +195,7 @@ spacing terstandardisasi (`ui/theme/Spacing.kt`), komponen reusable
 
 ### 5.8 Buat Tiket (Create Ticket)
 - **Elemen:** field judul & deskripsi, pilihan lampiran (NONE/CAMERA/FILE), tombol simpan.
-- **UX:** hanya untuk USER; validasi panjang judul/deskripsi; sukses → kembali ke daftar dengan tiket baru berstatus OPEN.
+- **UX:** tersedia untuk semua role; validasi panjang judul/deskripsi; sukses → kembali ke daftar dengan tiket baru berstatus OPEN.
 
 ### 5.9 Profil
 - **Elemen:** identitas pengguna, toggle mode gelap, tombol logout.

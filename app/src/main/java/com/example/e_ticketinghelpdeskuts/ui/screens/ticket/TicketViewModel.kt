@@ -233,11 +233,6 @@ class TicketViewModel(
             return
         }
 
-        if (user.role != UserRole.USER) {
-            _authMessage.value = AuthMessage.error("Hanya user pelapor yang dapat membuat tiket baru.")
-            return
-        }
-
         viewModelScope.launch {
             val now = currentTimestamp()
             val newTicket = Ticket(

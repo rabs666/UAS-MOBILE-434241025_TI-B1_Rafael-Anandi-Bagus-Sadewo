@@ -361,7 +361,6 @@ table(["Dokumen", "Isi"],
         ["API_DOCUMENTATION.md", "Endpoint REST API & skema data model"],
         ["docs/openapi.yaml", "Spesifikasi OpenAPI (Swagger/Postman)"],
         ["docs/DATABASE_DOCUMENTATION.md", "Skema relasional, DDL, ERD, seed data"],
-        ["docs/VIDEO_TUTORIAL_SCRIPT.md", "Naskah/storyboard video tutorial"],
       ], widths=[2.6, 3.4])
 
 # ============================================================ APPENDIX

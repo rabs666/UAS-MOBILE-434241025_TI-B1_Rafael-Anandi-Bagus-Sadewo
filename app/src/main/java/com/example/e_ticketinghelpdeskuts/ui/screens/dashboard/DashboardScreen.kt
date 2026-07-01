@@ -40,6 +40,7 @@ fun DashboardScreen(navController: NavController, viewModel: TicketViewModel) {
     // Hitung statistik secara real-time
     val totalCount = tickets.size
     val openCount = tickets.count { it.status == TicketStatus.OPEN }
+    val assignedCount = tickets.count { it.status == TicketStatus.ASSIGNED }
     val progressCount = tickets.count { it.status == TicketStatus.IN_PROGRESS }
     val closedCount = tickets.count { it.status == TicketStatus.CLOSED }
 

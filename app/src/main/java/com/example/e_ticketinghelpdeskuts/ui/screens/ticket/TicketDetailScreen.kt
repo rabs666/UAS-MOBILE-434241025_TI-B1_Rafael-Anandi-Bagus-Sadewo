@@ -87,83 +87,116 @@ fun TicketDetailScreen(navController: NavController, viewModel: TicketViewModel,
                 }
 
                 if (canManage) {
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = "Manajemen Tiket", 
-                                    style = MaterialTheme.typography.titleMedium, 
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
+                    // Admin: Assign section — only when status is OPEN (belum ditugaskan)
+                    if (currentUser?.role == UserRole.ADMIN && ticket!!.status == TicketStatus.OPEN) {
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(20.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = "Tugaskan ke Petugas",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Pilih petugas helpdesk untuk menangani tiket ini. Status akan otomatis berubah menjadi IN PROGRESS.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(12.dp))
 
-                                Text(text = "Ubah Status Pengerjaan:", style = MaterialTheme.typography.labelMedium)
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .horizontalScroll(rememberScrollState()),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    TicketStatus.values().forEach { status ->
-                                        FilterChip(
-                                            selected = ticket!!.status == status,
-                                            onClick = { viewModel.updateStatus(ticket!!.id, status) },
-                                            label = { Text(status.name) },
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(text = "Tugaskan ke Petugas:", style = MaterialTheme.typography.labelMedium)
-                                Spacer(modifier = Modifier.height(6.dp))
-
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .horizontalScroll(rememberScrollState())
-                                        .padding(bottom = 8.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    assignableAgents.forEach { agent ->
-                                        SuggestionChip(
-                                            onClick = { selectedAssignee = agent },
-                                            label = { Text(agent) },
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
-                                    }
-                                }
-
-                                OutlinedTextField(
-                                    value = selectedAssignee,
-                                    onValueChange = { selectedAssignee = it },
-                                    label = { Text("Nama Petugas") },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(12.dp),
-                                    singleLine = true
-                                )
-
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                Button(
-                                    onClick = {
-                                        if (selectedAssignee.isNotBlank()) {
-                                            viewModel.assignTicket(ticket!!.id, selectedAssignee)
-                                            selectedAssignee = ""
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .horizontalScroll(rememberScrollState())
+                                            .padding(bottom = 8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        assignableAgents.forEach { agent ->
+                                            SuggestionChip(
+                                                onClick = { selectedAssignee = agent },
+                                                label = { Text(agent) },
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
                                         }
-                                    },
-                                    modifier = Modifier.fillMaxWidth().height(46.dp),
-                                    shape = RoundedCornerShape(12.dp),
-                                    enabled = selectedAssignee.isNotBlank()
-                                ) {
-                                    Text("Assign Petugas", fontWeight = FontWeight.Bold)
+                                    }
+
+                                    OutlinedTextField(
+                                        value = selectedAssignee,
+                                        onValueChange = { selectedAssignee = it },
+                                        label = { Text("Nama Petugas") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(12.dp),
+                                        singleLine = true
+                                    )
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    Button(
+                                        onClick = {
+                                            if (selectedAssignee.isNotBlank()) {
+                                                viewModel.assignTicket(ticket!!.id, selectedAssignee)
+                                                selectedAssignee = ""
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth().height(46.dp),
+                                        shape = RoundedCornerShape(12.dp),
+                                        enabled = selectedAssignee.isNotBlank()
+                                    ) {
+                                        Text("Assign Petugas", fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Helpdesk / Admin: Tombol Selesai — only when status is IN_PROGRESS
+                    if (ticket!!.status == TicketStatus.IN_PROGRESS) {
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(20.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f))
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = "Selesaikan Tiket",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.tertiary
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Klik tombol di bawah jika pengerjaan tiket sudah selesai. Status akan otomatis berubah menjadi CLOSED.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    Button(
+                                        onClick = { viewModel.finishTicket(ticket!!.id) },
+                                        modifier = Modifier.fillMaxWidth().height(46.dp),
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.tertiary,
+                                            contentColor = MaterialTheme.colorScheme.onTertiary
+                                        )
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text("Selesai / Finish", fontWeight = FontWeight.Bold)
+                                    }
                                 }
                             }
                         }
@@ -283,6 +316,7 @@ fun TicketDetailScreen(navController: NavController, viewModel: TicketViewModel,
 private fun TicketInfoCard(ticket: Ticket) {
     val statusColor = when (ticket.status) {
         TicketStatus.OPEN -> MaterialTheme.colorScheme.error
+        TicketStatus.ASSIGNED -> MaterialTheme.colorScheme.primary
         TicketStatus.IN_PROGRESS -> MaterialTheme.colorScheme.secondary
         TicketStatus.CLOSED -> MaterialTheme.colorScheme.tertiary
     }

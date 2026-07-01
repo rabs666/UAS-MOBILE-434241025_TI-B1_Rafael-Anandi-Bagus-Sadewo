@@ -51,7 +51,7 @@ data class AppNotification(
 )
 
 enum class TicketStatus {
-    OPEN, IN_PROGRESS, CLOSED
+    OPEN, ASSIGNED, IN_PROGRESS, CLOSED
 }
 
 enum class UserRole {

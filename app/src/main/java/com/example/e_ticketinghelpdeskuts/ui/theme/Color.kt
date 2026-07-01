@@ -75,6 +75,11 @@ val StatusOpenOnContainer = Color(0xFF2A1700)
 val StatusOpenContainerDark = Color(0xFF5B4300)
 val StatusOpenOnContainerDark = Color(0xFFFFDDB3)
 
+val StatusAssignedContainer = Color(0xFFE8DEF8)
+val StatusAssignedOnContainer = Color(0xFF1D192B)
+val StatusAssignedContainerDark = Color(0xFF4F378B)
+val StatusAssignedOnContainerDark = Color(0xFFE8DEF8)
+
 val StatusProgressContainer = Color(0xFFCAE6FF)
 val StatusProgressOnContainer = Color(0xFF001E2F)
 val StatusProgressContainerDark = Color(0xFF004B70)

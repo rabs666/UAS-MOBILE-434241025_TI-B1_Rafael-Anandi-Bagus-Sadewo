@@ -71,6 +71,7 @@ fun TicketListScreen(navController: NavController, viewModel: TicketViewModel) {
                 listOf(
                     null to "Semua",
                     TicketStatus.OPEN to "Open",
+                    TicketStatus.ASSIGNED to "Assigned",
                     TicketStatus.IN_PROGRESS to "In Progress",
                     TicketStatus.CLOSED to "Closed"
                 ).forEach { (status, label) ->
@@ -126,6 +127,7 @@ fun TicketListScreen(navController: NavController, viewModel: TicketViewModel) {
 fun TicketCardItem(ticket: Ticket, onClick: () -> Unit) {
     val statusColor = when (ticket.status) {
         TicketStatus.OPEN -> MaterialTheme.colorScheme.error
+        TicketStatus.ASSIGNED -> MaterialTheme.colorScheme.primary
         TicketStatus.IN_PROGRESS -> MaterialTheme.colorScheme.secondary
         TicketStatus.CLOSED -> MaterialTheme.colorScheme.tertiary
     }

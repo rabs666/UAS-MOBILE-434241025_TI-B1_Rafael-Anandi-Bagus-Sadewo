@@ -16,7 +16,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.e_ticketinghelpdeskuts.data.remote.supabase
 import com.example.e_ticketinghelpdeskuts.data.repository.FakeTicketRepository
+import com.example.e_ticketinghelpdeskuts.data.repository.SupabaseTicketRepository
 import com.example.e_ticketinghelpdeskuts.ui.navigation.Screen
 import com.example.e_ticketinghelpdeskuts.ui.screens.auth.LoginScreen
 import com.example.e_ticketinghelpdeskuts.ui.screens.auth.RegisterScreen
@@ -41,8 +43,8 @@ class MainActivity : ComponentActivity() {
         
         setContent {
             val repository = remember { 
-                DebugUtils.logDebug("Creating FakeTicketRepository")
-                FakeTicketRepository() 
+                DebugUtils.logDebug("Creating SupabaseTicketRepository")
+                SupabaseTicketRepository(supabase)
             }
             val ticketViewModel: TicketViewModel = viewModel(
                 factory = TicketViewModelFactory(repository)

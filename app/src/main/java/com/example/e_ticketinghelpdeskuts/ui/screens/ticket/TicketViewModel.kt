@@ -136,6 +136,23 @@ class TicketViewModel(
             initialValue = 0
         )
 
+    /** Status tarik-data dari repository — dipakai indikator pull-to-refresh di UI. */
+    val isRefreshing: StateFlow<Boolean> = repository.isRefreshing
+
+    init {
+        // Auto-refresh berkala: menarik data terbaru dari Supabase tiap 15 detik selama
+        // pengguna login. Ini membuat notifikasi & dot merah muncul otomatis (live) tanpa
+        // harus keluar-masuk layar dulu.
+        viewModelScope.launch {
+            while (true) {
+                delay(15_000)
+                if (_currentUser.value != null) {
+                    repository.refresh()
+                }
+            }
+        }
+    }
+
     val assignableAgents: StateFlow<List<String>> = registeredUsers
         .map { users ->
             users.filter { it.role == UserRole.HELPDESK || it.role == UserRole.ADMIN }
@@ -377,7 +394,8 @@ class TicketViewModel(
         if (cleanMessage.isEmpty()) return
 
         val comment = Comment(
-            id = UUID.randomUUID().toString(),
+            // ID ringkas (<=20 char) agar muat di kolom comments.id VARCHAR(20) Supabase.
+            id = "CM-" + UUID.randomUUID().toString().replace("-", "").take(14),
             sender = actor.name,
             message = cleanMessage,
             timestamp = currentTimestamp()

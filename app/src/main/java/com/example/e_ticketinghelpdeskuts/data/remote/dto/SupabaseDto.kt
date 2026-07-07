@@ -62,9 +62,10 @@ data class NotificationDto(
     val title: String,
     val message: String,
     @SerialName("created_at")
-    val createdAt: String,
+    val createdAt: String = "",
     @SerialName("ticket_id")
     val ticketId: String? = null,
+    // Default false agar baris dengan is_read null/absen tetap ter-decode (tidak mematikan seluruh fetch).
     @SerialName("is_read")
-    val isRead: Boolean
+    val isRead: Boolean = false
 )

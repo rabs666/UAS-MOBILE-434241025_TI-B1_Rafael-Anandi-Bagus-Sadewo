@@ -9,6 +9,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
@@ -28,6 +30,9 @@ class SupabaseTicketRepository(
     private val usersFlow = MutableStateFlow<List<AppUser>>(seedUsers())
     private val scope = CoroutineScope(Dispatchers.IO)
 
+    private val _isRefreshing = MutableStateFlow(false)
+    override val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     init {
         refreshData()
     }
@@ -39,76 +44,93 @@ class SupabaseTicketRepository(
 
     private fun refreshData() {
         scope.launch {
+            _isRefreshing.value = true
             try {
+                // Tiap section di-fetch dalam try/catch sendiri. Tujuannya: jika satu tabel
+                // (mis. tickets) gagal decode, section lain — terutama NOTIFICATIONS — tetap
+                // ter-update. Sebelumnya semuanya satu blok try, jadi 1 baris rusak = notifikasi
+                // & dot ikut hilang total.
+
                 // Fetch Users for resolving names
-                val users = supabase.postgrest["users"].select().decodeList<UserDto>()
-                val userMap = users.associateBy { it.id }
+                var userMap: Map<String, UserDto> = emptyMap()
+                try {
+                    val users = supabase.postgrest["users"].select().decodeList<UserDto>()
+                    userMap = users.associateBy { it.id }
 
-                // Simpan daftar user (untuk login & manajemen pengguna)
-                usersFlow.value = users.map { u ->
-                    AppUser(
-                        id = u.id,
-                        name = u.name,
-                        username = u.username,
-                        email = u.email,
-                        password = u.password,
-                        role = try { UserRole.valueOf(u.role) } catch (e: Exception) { UserRole.USER }
-                    )
+                    // Simpan daftar user (untuk login & manajemen pengguna)
+                    usersFlow.value = users.map { u ->
+                        AppUser(
+                            id = u.id,
+                            name = u.name,
+                            username = u.username,
+                            email = u.email,
+                            password = u.password,
+                            role = try { UserRole.valueOf(u.role) } catch (e: Exception) { UserRole.USER }
+                        )
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
 
-                // Fetch Tickets
-                val ticketsDto = supabase.postgrest["tickets"].select().decodeList<TicketDto>()
-                
-                // Fetch Comments
-                val commentsDto = supabase.postgrest["comments"].select().decodeList<CommentDto>()
-                val commentsByTicket = commentsDto.groupBy { it.ticketId }
-                
-                // Fetch Activities
-                val activitiesDto = supabase.postgrest["ticket_activities"].select().decodeList<TicketActivityDto>()
-                val activitiesByTicket = activitiesDto.groupBy { it.ticketId }
+                // Fetch Tickets (+ Comments + Activities)
+                try {
+                    val ticketsDto = supabase.postgrest["tickets"].select().decodeList<TicketDto>()
 
-                val mappedTickets = ticketsDto.map { dto ->
-                    val applicant = userMap[dto.applicantId]?.name ?: "Unknown"
-                    val assignedToName = dto.assignedTo?.let { userMap[it]?.name }
-                    
-                    Ticket(
-                        id = dto.id,
-                        title = dto.title,
-                        description = dto.description,
-                        status = try { TicketStatus.valueOf(dto.status) } catch(e: Exception) { TicketStatus.OPEN },
-                        createdAt = dto.createdAt,
-                        applicantId = dto.applicantId,
-                        applicant = applicant,
-                        assignedTo = assignedToName,
-                        attachmentSource = try { AttachmentSource.valueOf(dto.attachmentSource) } catch(e: Exception) { AttachmentSource.NONE },
-                        attachmentName = dto.attachmentName,
-                        comments = commentsByTicket[dto.id]?.map { c ->
-                            Comment(c.id, c.sender, c.message, c.createdAt)
-                        } ?: emptyList(),
-                        activities = activitiesByTicket[dto.id]?.map { a ->
-                            TicketActivity(a.id, a.title, a.actor, a.createdAt)
-                        } ?: emptyList()
-                    )
-                }.sortedByDescending { it.createdAt }
+                    val commentsDto = supabase.postgrest["comments"].select().decodeList<CommentDto>()
+                    val commentsByTicket = commentsDto.groupBy { it.ticketId }
 
-                ticketsFlow.value = mappedTickets
+                    val activitiesDto = supabase.postgrest["ticket_activities"].select().decodeList<TicketActivityDto>()
+                    val activitiesByTicket = activitiesDto.groupBy { it.ticketId }
 
-                // Fetch Notifications
-                val notifsDto = supabase.postgrest["notifications"].select().decodeList<NotificationDto>()
-                val mappedNotifs = notifsDto.map { n: NotificationDto ->
-                    AppNotification(
-                        id = n.id,
-                        title = n.title,
-                        message = n.message,
-                        timestamp = n.createdAt,
-                        ticketId = n.ticketId,
-                        isRead = n.isRead
-                    )
+                    val mappedTickets = ticketsDto.map { dto ->
+                        val applicant = userMap[dto.applicantId]?.name ?: "Unknown"
+                        val assignedToName = dto.assignedTo?.let { userMap[it]?.name }
+
+                        Ticket(
+                            id = dto.id,
+                            title = dto.title,
+                            description = dto.description,
+                            status = try { TicketStatus.valueOf(dto.status) } catch(e: Exception) { TicketStatus.OPEN },
+                            createdAt = dto.createdAt,
+                            applicantId = dto.applicantId,
+                            applicant = applicant,
+                            assignedTo = assignedToName,
+                            attachmentSource = try { AttachmentSource.valueOf(dto.attachmentSource) } catch(e: Exception) { AttachmentSource.NONE },
+                            attachmentName = dto.attachmentName,
+                            comments = commentsByTicket[dto.id]?.map { c ->
+                                Comment(c.id, c.sender, c.message, c.createdAt)
+                            } ?: emptyList(),
+                            activities = activitiesByTicket[dto.id]?.map { a ->
+                                TicketActivity(a.id, a.title, a.actor, a.createdAt)
+                            } ?: emptyList()
+                        )
+                    }.sortedByDescending { it.createdAt }
+
+                    ticketsFlow.value = mappedTickets
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-                notificationsFlow.value = mappedNotifs.sortedByDescending { it.timestamp }
 
-            } catch (e: Exception) {
-                e.printStackTrace()
+                // Fetch Notifications — independen agar dot & daftar notifikasi tidak ikut
+                // hilang saat tabel lain bermasalah.
+                try {
+                    val notifsDto = supabase.postgrest["notifications"].select().decodeList<NotificationDto>()
+                    val mappedNotifs = notifsDto.map { n: NotificationDto ->
+                        AppNotification(
+                            id = n.id,
+                            title = n.title,
+                            message = n.message,
+                            timestamp = n.createdAt,
+                            ticketId = n.ticketId,
+                            isRead = n.isRead
+                        )
+                    }
+                    notificationsFlow.value = mappedNotifs.sortedByDescending { it.timestamp }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } finally {
+                _isRefreshing.value = false
             }
         }
     }
@@ -171,7 +193,7 @@ class SupabaseTicketRepository(
         supabase.postgrest["tickets"].insert(dto)
         
         val activity = TicketActivityDto(
-            id = UUID.randomUUID().toString(),
+            id = newId("AC"),
             ticketId = ticket.id,
             title = "Tiket dibuat",
             actor = ticket.applicant,
@@ -197,8 +219,8 @@ class SupabaseTicketRepository(
             filter { eq("id", id) }
         }
 
-        val activity1 = TicketActivityDto(UUID.randomUUID().toString(), id, "Tiket di-assign ke $assignee", actor, timestamp)
-        val activity2 = TicketActivityDto(UUID.randomUUID().toString(), id, "Status otomatis berubah menjadi In Progress", "System", timestamp)
+        val activity1 = TicketActivityDto(newId("AC"), id, "Tiket di-assign ke $assignee", actor, timestamp)
+        val activity2 = TicketActivityDto(newId("AC"), id, "Status otomatis berubah menjadi In Progress", "System", timestamp)
         supabase.postgrest["ticket_activities"].insert(listOf(activity1, activity2))
 
         pushNotification("Penugasan Tiket", "$id ditugaskan ke $assignee — status: In Progress", id)
@@ -213,7 +235,7 @@ class SupabaseTicketRepository(
             filter { eq("id", id) }
         }
 
-        val activity = TicketActivityDto(UUID.randomUUID().toString(), id, "Tiket diterima oleh admin — status Assigned", actor, now())
+        val activity = TicketActivityDto(newId("AC"), id, "Tiket diterima oleh admin — status Assigned", actor, now())
         supabase.postgrest["ticket_activities"].insert(activity)
 
         pushNotification("Tiket Diterima", "$id telah diterima oleh $actor — status: Assigned", id)
@@ -228,7 +250,7 @@ class SupabaseTicketRepository(
             filter { eq("id", id) }
         }
 
-        val activity = TicketActivityDto(UUID.randomUUID().toString(), id, "Tiket diselesaikan — status Closed", actor, now())
+        val activity = TicketActivityDto(newId("AC"), id, "Tiket diselesaikan — status Closed", actor, now())
         supabase.postgrest["ticket_activities"].insert(activity)
 
         pushNotification("Tiket Selesai ✓", "$id telah diselesaikan oleh $actor", id)
@@ -245,7 +267,7 @@ class SupabaseTicketRepository(
         )
         supabase.postgrest["comments"].insert(dto)
 
-        val activity = TicketActivityDto(UUID.randomUUID().toString(), ticketId, "Komentar baru dari ${comment.sender}", comment.sender, comment.timestamp)
+        val activity = TicketActivityDto(newId("AC"), ticketId, "Komentar baru dari ${comment.sender}", comment.sender, comment.timestamp)
         supabase.postgrest["ticket_activities"].insert(activity)
 
         pushNotification("Komentar Baru", "${comment.sender} menambahkan komentar pada $ticketId", ticketId)
@@ -274,7 +296,7 @@ class SupabaseTicketRepository(
 
     private suspend fun pushNotification(title: String, message: String, ticketId: String?) {
         val dto = NotificationDto(
-            id = UUID.randomUUID().toString(),
+            id = newId("NT"),
             title = title,
             message = message,
             createdAt = now(),
@@ -286,6 +308,17 @@ class SupabaseTicketRepository(
 
     private fun now(): String {
         return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+    }
+
+    /**
+     * ID unik ringkas (<= 20 karakter) agar MUAT di kolom VARCHAR(20) Supabase.
+     * UUID penuh berukuran 36 karakter → ditolak Postgres ("value too long"),
+     * itulah yang dulu membuat insert notifikasi/aktivitas/komentar gagal diam-diam
+     * sehingga notifikasi & dot tidak pernah muncul. Format: "PP-<14 hex>" = 17 char.
+     */
+    private fun newId(prefix: String): String {
+        val rand = UUID.randomUUID().toString().replace("-", "").take(14)
+        return "$prefix-$rand"
     }
 
     // Fallback akun demo (identik dengan seed di tabel users Supabase) agar

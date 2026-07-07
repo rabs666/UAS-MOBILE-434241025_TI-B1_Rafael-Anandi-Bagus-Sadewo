@@ -12,6 +12,7 @@ import com.example.e_ticketinghelpdeskuts.domain.model.displayName
 import com.example.e_ticketinghelpdeskuts.domain.repository.TicketRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -24,6 +25,9 @@ class FakeTicketRepository : TicketRepository {
     private val usersFlow = MutableStateFlow(seedUsers())
 
     override fun getTickets(): Flow<List<Ticket>> = ticketsFlow
+
+    // Data in-memory selalu siap, jadi tidak pernah dalam keadaan "refreshing".
+    override val isRefreshing: StateFlow<Boolean> = MutableStateFlow(false)
 
     // Data in-memory, tidak perlu fetch ulang.
     override fun refresh() {}

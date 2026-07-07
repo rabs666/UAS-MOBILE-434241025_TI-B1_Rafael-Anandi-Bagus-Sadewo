@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,6 +40,7 @@ fun DashboardScreen(navController: NavController, viewModel: TicketViewModel) {
     val tickets by viewModel.tickets.collectAsState()
     val unreadCount by viewModel.unreadNotificationCount.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
     
     // Hitung statistik secara real-time
     val totalCount = tickets.size
@@ -86,9 +88,15 @@ fun DashboardScreen(navController: NavController, viewModel: TicketViewModel) {
             }
         }
     ) { padding ->
-        Column(
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .padding(padding)
+                .fillMaxSize()
+        ) {
+        Column(
+            modifier = Modifier
                 .fillMaxSize()
                 .background(backgroundBrush)
                 .verticalScroll(rememberScrollState())
@@ -225,6 +233,7 @@ fun DashboardScreen(navController: NavController, viewModel: TicketViewModel) {
                 navController.navigate(Screen.Notifications.route)
             }
             Spacer(modifier = Modifier.height(24.dp))
+        }
         }
     }
 }

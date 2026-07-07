@@ -6,12 +6,15 @@ import com.example.e_ticketinghelpdeskuts.domain.model.Comment
 import com.example.e_ticketinghelpdeskuts.domain.model.Ticket
 import com.example.e_ticketinghelpdeskuts.domain.model.UserRole
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 interface TicketRepository {
     fun getTickets(): Flow<List<Ticket>>
     fun getTicketById(id: String): Flow<Ticket?>
     fun getNotifications(): Flow<List<AppNotification>>
-    /** Ambil ulang data terbaru dari sumber (Supabase). Dipanggil saat layar dibuka. */
+    /** true selama proses tarik data ke Supabase berlangsung. Dipakai indikator pull-to-refresh. */
+    val isRefreshing: StateFlow<Boolean>
+    /** Ambil ulang data terbaru dari sumber (Supabase). Dipanggil saat layar dibuka / pull-to-refresh. */
     fun refresh()
     suspend fun createTicket(ticket: Ticket)
     suspend fun assignTicket(id: String, assignee: String, actor: String)

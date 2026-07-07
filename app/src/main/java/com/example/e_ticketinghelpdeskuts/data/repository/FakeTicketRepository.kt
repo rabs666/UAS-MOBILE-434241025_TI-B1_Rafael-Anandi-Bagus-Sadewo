@@ -25,6 +25,9 @@ class FakeTicketRepository : TicketRepository {
 
     override fun getTickets(): Flow<List<Ticket>> = ticketsFlow
 
+    // Data in-memory, tidak perlu fetch ulang.
+    override fun refresh() {}
+
     override fun getUsers(): Flow<List<AppUser>> = usersFlow
 
     override suspend fun createUser(user: AppUser) {

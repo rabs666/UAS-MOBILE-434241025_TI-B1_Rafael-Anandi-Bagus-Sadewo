@@ -32,6 +32,11 @@ class SupabaseTicketRepository(
         refreshData()
     }
 
+    /** Dipanggil dari UI (saat layar dibuka) untuk menarik data terbaru dari Supabase. */
+    override fun refresh() {
+        refreshData()
+    }
+
     private fun refreshData() {
         scope.launch {
             try {

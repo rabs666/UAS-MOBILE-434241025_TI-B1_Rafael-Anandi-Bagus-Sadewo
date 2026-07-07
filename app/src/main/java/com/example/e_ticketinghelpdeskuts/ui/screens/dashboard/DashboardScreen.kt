@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -33,6 +34,8 @@ import com.example.e_ticketinghelpdeskuts.ui.screens.ticket.TicketViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(navController: NavController, viewModel: TicketViewModel) {
+    // Tarik data terbaru dari Supabase tiap kali dashboard dibuka.
+    LaunchedEffect(Unit) { viewModel.refresh() }
     val tickets by viewModel.tickets.collectAsState()
     val unreadCount by viewModel.unreadNotificationCount.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()

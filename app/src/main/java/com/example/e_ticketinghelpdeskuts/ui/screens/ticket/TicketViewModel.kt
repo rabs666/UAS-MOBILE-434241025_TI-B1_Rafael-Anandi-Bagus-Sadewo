@@ -151,6 +151,11 @@ class TicketViewModel(
         _authMessage.value = null
     }
 
+    /** Tarik data terbaru dari Supabase. Dipanggil saat layar daftar/dashboard dibuka. */
+    fun refresh() {
+        repository.refresh()
+    }
+
     fun login(username: String, password: String): Boolean {
         if (username.isBlank() || password.isBlank()) {
             _authMessage.value = AuthMessage.error("Username dan password wajib diisi.")

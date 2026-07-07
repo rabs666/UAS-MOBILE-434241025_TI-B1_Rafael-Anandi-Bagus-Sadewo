@@ -11,6 +11,8 @@ interface TicketRepository {
     fun getTickets(): Flow<List<Ticket>>
     fun getTicketById(id: String): Flow<Ticket?>
     fun getNotifications(): Flow<List<AppNotification>>
+    /** Ambil ulang data terbaru dari sumber (Supabase). Dipanggil saat layar dibuka. */
+    fun refresh()
     suspend fun createTicket(ticket: Ticket)
     suspend fun assignTicket(id: String, assignee: String, actor: String)
     suspend fun acceptTicket(id: String, actor: String)

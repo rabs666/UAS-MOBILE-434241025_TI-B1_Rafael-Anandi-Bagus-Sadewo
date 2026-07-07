@@ -38,6 +38,8 @@ import com.example.e_ticketinghelpdeskuts.domain.model.displayName
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TicketDetailScreen(navController: NavController, viewModel: TicketViewModel, ticketId: String?) {
+    // Tarik data terbaru dari Supabase saat detail dibuka (agar status/komentar sinkron).
+    LaunchedEffect(Unit) { viewModel.refresh() }
     val ticket by if (ticketId != null) {
         viewModel.getTicketDetail(ticketId).collectAsState()
     } else {
